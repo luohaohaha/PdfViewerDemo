@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:paddingRight="4dp"
+    android:paddingBottom="4dp"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/color_item"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/bg_color_palette"
+        android:layout_gravity="center" />
+
+    <CheckBox
+        android:id="@+id/select_color"
+        android:layout_width="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:enabled="false"
+        android:layout_marginRight="-4dp"
+        android:button="@drawable/ic_drawable_color_select"
+        android:layout_marginBottom="-4dp"
+        android:layout_height="wrap_content"/>
+
+</FrameLayout>

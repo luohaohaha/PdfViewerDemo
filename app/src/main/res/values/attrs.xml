@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LinearColorPicker">
+
+        <!--the color picker direction like LinearLayout orientation-->
+        <attr name="pickerOrientation">
+            <enum name="vertical" value="0" />
+            <enum name="horizontal" value="1" />
+        </attr>
+
+        <!--the color picker thumb-->
+        <attr name="pickerThumbDrawable" format="reference" />
+
+        <!--the color picker height-->
+        <attr name="pickerHeight" format="dimension" />
+
+        <!--the color picker round corner-->
+        <attr name="pickerRoundCorner" format="dimension" />
+
+        <!--the color picker color gradient array-->
+        <attr name="pickerGradientArray" format="reference" />
+    </declare-styleable>
+
+</resources>

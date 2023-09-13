@@ -4,28 +4,39 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +55,11 @@ import com.artifex.mupdfdemo.OutlineItem;
 import com.artifex.mupdfdemo.ReaderView;
 import com.artifex.mupdfdemo.SearchTask;
 import com.artifex.mupdfdemo.SearchTaskResult;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.lonelypluto.pdflibrary.constants.CommConsts;
 import com.lonelypluto.pdflibrary.utils.SharedPreferencesUtil;
 import com.lonelypluto.pdfviewerdemo.R;
+import com.sa90.materialarcmenu.ArcMenu;
 
 import java.util.concurrent.Executor;
 
@@ -57,7 +71,7 @@ import java.util.concurrent.Executor;
 public class MoreSetActivity extends AppCompatActivity {
     private static final String TAG = MoreSetActivity.class.getSimpleName();
     private final int OUTLINE_REQUEST = 0;// 目录回调
-    private String filePath = Environment.getExternalStorageDirectory() + "/pdf_t1.pdf"; // 文件路径
+    private String filePath = Environment.getExternalStorageDirectory() + "/android-programming-for-beginners.pdf"; // 文件路径
 
     private AlertDialog.Builder mAlertBuilder;// 弹出框
 
@@ -99,6 +113,9 @@ public class MoreSetActivity extends AppCompatActivity {
     private Button btn_paintcolor;// 设置画笔颜色
     private Button btn_paintstrokewidth;// 设置画笔粗细
 
+    private ArcMenu mExpandMenuContainer;
+    private FloatingActionButton mFabColorPalette , mFabHighlight , mFabUnderLine , mFabStrikeOut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +135,52 @@ public class MoreSetActivity extends AppCompatActivity {
         initToolsView();
         createPDF();
         setPDFVoid();
+        initFabMenus();
+    }
+
+    private void initFabMenus(){
+        mExpandMenuContainer = findViewById(R.id.expand_menu_container);
+        mFabColorPalette = findViewById(R.id.menu_color_palette);
+        mFabHighlight = findViewById(R.id.menu_highlight);
+        mFabUnderLine = findViewById(R.id.menu_under_line);
+        mFabStrikeOut = findViewById(R.id.menu_strike_out);
+
+        mFabColorPalette.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showColorPaletteDialog();
+            }
+        });
+        mFabHighlight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OnHighlightButtonClick(v);
+            }
+        });
+        mFabUnderLine.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OnUnderlineButtonClick(v);
+            }
+        });
+        mFabStrikeOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OnStrikeOutButtonClick(v);
+            }
+        });
+
+        muPDFReaderView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(MotionEvent.ACTION_UP == event.getAction() || MotionEvent.ACTION_CANCEL == event.getAction()){
+                    MuPDFReaderView.Mode mode = muPDFReaderView.getMode();
+                    OnAcceptButtonClick(v);
+                    return  mode == MuPDFReaderView.Mode.Selecting || mode == MuPDFReaderView.Mode.Drawing;
+                }
+                return false;
+            }
+        });
     }
 
     private void setPDFVoid(){
@@ -708,6 +771,9 @@ public class MoreSetActivity extends AppCompatActivity {
         mAcceptMode = AcceptMode.Underline;
         muPDFReaderView.setMode(MuPDFReaderView.Mode.Selecting);
         mAnnotTypeText.setText(com.lonelypluto.pdfviewerdemo.R.string.pdf_tools_underline);
+        int color = Color.parseColor(mSelectColor);
+        setLinkHighlightColor(color);
+        setInkColor(color);
         showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.select_text));
     }
 
@@ -790,6 +856,8 @@ public class MoreSetActivity extends AppCompatActivity {
     public void OnAcceptButtonClick(View v) {
         MuPDFView pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
         boolean success = false;
+        if(null == mAcceptMode)
+            return;
         switch (mAcceptMode) {
             case CopyText:
                 if (pageView != null)
@@ -833,6 +901,7 @@ public class MoreSetActivity extends AppCompatActivity {
         }
         mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
         muPDFReaderView.setMode(MuPDFReaderView.Mode.Viewing);
+        mAcceptMode = null;
     }
 
     /**
@@ -1105,5 +1174,75 @@ public class MoreSetActivity extends AppCompatActivity {
      */
     enum AcceptMode {
         Highlight, Underline, StrikeOut, Ink, CopyText
+    }
+
+    private int mSelectColorPosition = -1;
+    private  String mSelectColor = "";
+    private void showColorPaletteDialog(){
+        View dialogView = View.inflate(this,R.layout.layout_color_palette,null);
+        GridView colorPaletteGridView = dialogView.findViewById(R.id.color_palette);
+        colorPaletteGridView.setAdapter(new BaseAdapter() {
+            @Override
+            public int getCount() {
+                return CommConsts.COLOR_PALETTE_LIST.size();
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return CommConsts.COLOR_PALETTE_LIST.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return position;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View itemView = View.inflate(MoreSetActivity.this,R.layout.item_color , null );
+                ImageView colorItem = itemView.findViewById(R.id.color_item);
+                CheckBox selectColor = itemView.findViewById(R.id.select_color);
+                if(mSelectColorPosition == position){
+                    selectColor.setChecked(true);
+                }else {
+                    selectColor.setChecked(false);
+                }
+                int color  = Color.parseColor( CommConsts.COLOR_PALETTE_LIST.get(position));
+                ColorStateList tint = ColorStateList.valueOf(color);
+                setTint(colorItem, tint);
+                return itemView;
+            }
+        });
+        colorPaletteGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mSelectColorPosition = position;
+                mSelectColor = CommConsts.COLOR_PALETTE_LIST.get(position);
+                ((BaseAdapter)colorPaletteGridView.getAdapter()).notifyDataSetChanged();
+            }
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int color = Color.parseColor(mSelectColor);
+                muPDFReaderView.setLinkHighlightColor(color);
+                muPDFReaderView.setInkColor(color);
+            }
+        }).setTitle("请选择颜色").setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        }).create();
+        dialog.show();
+    }
+
+    private static void setTint(ImageView colorItem, ColorStateList tint) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            colorItem.setImageTintList(tint);
+        }else {
+            DrawableCompat.setTintList(colorItem.getDrawable(), tint);
+        }
     }
 }
