@@ -14,4 +14,5 @@ PdfViewerDemo is developed within the [mupdf](https://mupdf.com/downloads/) proj
 * 修复画笔颜色无效问题(mupdf.c修改)
 * 修复画笔size设置无效问题(mupdf.c修改)
 * addMarkupAnnotation新增颜色入参，支持对下划线、高亮、删除线的颜色设置(mupdf.c修改)
+* 去除不用的功能(设置链接颜色、搜索、复制文字、画笔size、outline)
 * 画笔画完之后，Annotation点击不能删除问题
