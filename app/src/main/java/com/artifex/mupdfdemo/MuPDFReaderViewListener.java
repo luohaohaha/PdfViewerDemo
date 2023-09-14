@@ -12,5 +12,5 @@ public interface MuPDFReaderViewListener
     
     void onDocMotion();
     
-    void onHit(final Hit p0);
+    void onHit(final HitItem p0);
 }

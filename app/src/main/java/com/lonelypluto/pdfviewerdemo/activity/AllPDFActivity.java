@@ -41,6 +41,7 @@ import android.widget.ViewAnimator;
 
 import com.artifex.mupdfdemo.Annotation;
 import com.artifex.mupdfdemo.Hit;
+import com.artifex.mupdfdemo.HitItem;
 import com.artifex.mupdfdemo.MuPDFAlert;
 import com.artifex.mupdfdemo.MuPDFCore;
 import com.artifex.mupdfdemo.MuPDFPageAdapter;
@@ -90,8 +91,8 @@ public class AllPDFActivity extends AppCompatActivity {
     // tools 注释类型
     private TextView mAnnotTypeText;// 注释类型
     // tools 底部布局
-    private TextView mPageNumberView;// 页数
-    private SeekBar mPageSlider;// 底部拖动条
+//    private TextView mPageNumberView;// 页数
+//    private SeekBar mPageSlider;// 底部拖动条
 
     private int mPageSliderRes;// 拖动条的个数
     private boolean mButtonsVisible;// 是否显示工具栏
@@ -347,12 +348,12 @@ public class AllPDFActivity extends AppCompatActivity {
 
         mAnnotTypeText = (TextView) findViewById(R.id.annotType);
 
-        mPageNumberView = (TextView) findViewById(R.id.pageNumber);
-        mPageSlider = (SeekBar) findViewById(R.id.pageSlider);
+//        mPageNumberView = (TextView) findViewById(R.id.pageNumber);
+//        mPageSlider = (SeekBar) findViewById(R.id.pageSlider);
 
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
-        mPageNumberView.setVisibility(View.INVISIBLE);
-        mPageSlider.setVisibility(View.INVISIBLE);
+//        mPageNumberView.setVisibility(View.INVISIBLE);
+//        mPageSlider.setVisibility(View.INVISIBLE);
     }
 
     /**
@@ -398,10 +399,10 @@ public class AllPDFActivity extends AppCompatActivity {
                 if (muPDFCore == null)
                     return;
 
-                mPageNumberView.setText(String.format("%d / %d", i + 1,
-                        muPDFCore.countPages()));
-                mPageSlider.setMax((muPDFCore.countPages() - 1) * mPageSliderRes);
-                mPageSlider.setProgress(i * mPageSliderRes);
+//                mPageNumberView.setText(String.format("%d / %d", i + 1,
+//                        muPDFCore.countPages()));
+//                mPageSlider.setMax((muPDFCore.countPages() - 1) * mPageSliderRes);
+//                mPageSlider.setProgress(i * mPageSliderRes);
             }
 
             @Override
@@ -420,10 +421,10 @@ public class AllPDFActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onHit(Hit item) {
+            public void onHit(HitItem item) {
                 switch (mTopBarMode) {
                     case Annot:
-                        if (item == Hit.Annotation) {
+                        if (item.getHit() == Hit.Annotation) {
                             showButtons();
                             mTopBarMode = TopBarMode.Delete;
                             mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
@@ -461,19 +462,19 @@ public class AllPDFActivity extends AppCompatActivity {
             }
         };
 
-        mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                muPDFReaderView.setDisplayedViewIndex((seekBar.getProgress() + mPageSliderRes / 2) / mPageSliderRes);
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            public void onProgressChanged(SeekBar seekBar, int progress,
-                                          boolean fromUser) {
-                updatePageNumView((progress + mPageSliderRes / 2) / mPageSliderRes);
-            }
-        });
+//        mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//                muPDFReaderView.setDisplayedViewIndex((seekBar.getProgress() + mPageSliderRes / 2) / mPageSliderRes);
+//            }
+//
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//            }
+//
+//            public void onProgressChanged(SeekBar seekBar, int progress,
+//                                          boolean fromUser) {
+//                updatePageNumView((progress + mPageSliderRes / 2) / mPageSliderRes);
+//            }
+//        });
 
         // Activate the search-preparing button
         mSearchButton.setOnClickListener(new View.OnClickListener() {
@@ -600,8 +601,8 @@ public class AllPDFActivity extends AppCompatActivity {
             // Update page number text and slider
             int index = muPDFReaderView.getDisplayedViewIndex();
             updatePageNumView(index);
-            mPageSlider.setMax((muPDFCore.countPages() - 1) * mPageSliderRes);
-            mPageSlider.setProgress(index * mPageSliderRes);
+//            mPageSlider.setMax((muPDFCore.countPages() - 1) * mPageSliderRes);
+//            mPageSlider.setProgress(index * mPageSliderRes);
             if (mTopBarMode == TopBarMode.Search) {
                 mSearchText.requestFocus();
                 showKeyboard();
@@ -622,7 +623,7 @@ public class AllPDFActivity extends AppCompatActivity {
             });
             mTopBarSwitcher.startAnimation(anim);
 
-            anim = new TranslateAnimation(0, 0, mPageSlider.getHeight(), 0);
+            /*anim = new TranslateAnimation(0, 0, mPageSlider.getHeight(), 0);
             anim.setDuration(200);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
@@ -636,7 +637,7 @@ public class AllPDFActivity extends AppCompatActivity {
                     mPageNumberView.setVisibility(View.VISIBLE);
                 }
             });
-            mPageSlider.startAnimation(anim);
+            mPageSlider.startAnimation(anim);*/
         }
     }
 
@@ -663,7 +664,7 @@ public class AllPDFActivity extends AppCompatActivity {
             });
             mTopBarSwitcher.startAnimation(anim);
 
-            anim = new TranslateAnimation(0, 0, 0, mPageSlider.getHeight());
+           /* anim = new TranslateAnimation(0, 0, 0, mPageSlider.getHeight());
             anim.setDuration(200);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
@@ -677,7 +678,7 @@ public class AllPDFActivity extends AppCompatActivity {
                     mPageSlider.setVisibility(View.INVISIBLE);
                 }
             });
-            mPageSlider.startAnimation(anim);
+            mPageSlider.startAnimation(anim);*/
         }
     }
 
@@ -688,7 +689,7 @@ public class AllPDFActivity extends AppCompatActivity {
     private void updatePageNumView(int index) {
         if (muPDFCore == null)
             return;
-        mPageNumberView.setText(String.format("%d / %d", index + 1, muPDFCore.countPages()));
+//        mPageNumberView.setText(String.format("%d / %d", index + 1, muPDFCore.countPages()));
     }
 
     /**

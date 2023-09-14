@@ -17,7 +17,7 @@ public interface MuPDFView
     
     void blank(final int p0);
     
-    Hit passClickEvent(final float p0, final float p1);
+    HitItem passClickEvent(final float p0, final float p1);
     
     LinkInfo hitLink(final float p0, final float p1);
     

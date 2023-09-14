@@ -9,4 +9,5 @@ public enum Hit
     Nothing, 
     Widget, 
     Annotation;
+
 }

@@ -11,84 +11,55 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <include
-        android:id="@+id/open_pdf_tools"
-        layout="@layout/pdf_tools" />
+    <!--  <include
+          android:id="@+id/open_pdf_tools"
+          layout="@layout/pdf_tools" />-->
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/btn_change_hv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="横" />
-
-        <Button
-            android:id="@+id/btn_linkhighlightcolor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="设置超链接颜色" />
-
-        <Button
-            android:id="@+id/btn_searchtextcolor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="设置搜索文字颜色" />
-
-        <Button
-            android:id="@+id/btn_set_paint_color"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="设置画笔颜色" />
-
-        <Button
-            android:id="@+id/btn_set_paint_strokewidth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="设置画笔粗细" />
-    </LinearLayout>
 
     <com.sa90.materialarcmenu.ArcMenu
         android:id="@+id/expand_menu_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
-        app:menu_open="arc_left"
-        app:menu_radius="100dp"
         app:menu_animation_time="200"
+        app:menu_open="arc_left"
+        app:menu_radius="120dp"
         app:menu_scr="@drawable/baseline_edit_24">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/menu_color_palette"
             android:layout_width="wrap_content"
-            app:fabSize="mini"
             android:layout_height="wrap_content"
-            android:src="@drawable/baseline_color_lens_24" />
+            android:src="@drawable/baseline_color_lens_24"
+            app:fabSize="mini" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/menu_draw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_draw_24"
+            app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/menu_highlight"
             android:layout_width="wrap_content"
-            app:fabSize="mini"
+            android:layout_height="wrap_content"
             android:src="@drawable/baseline_format_color_fill_24"
-            android:layout_height="wrap_content" />
+            app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/menu_under_line"
-            android:src="@drawable/baseline_format_underlined_24"
             android:layout_width="wrap_content"
-            app:fabSize="mini"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_format_underlined_24"
+            app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/menu_strike_out"
             android:layout_width="wrap_content"
-            app:fabSize="mini"
+            android:layout_height="wrap_content"
             android:src="@drawable/baseline_format_strikethrough_24"
-            android:layout_height="wrap_content" />
+            app:fabSize="mini" />
 
     </com.sa90.materialarcmenu.ArcMenu>
 

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import android.graphics.Color;
 import android.graphics.Path;
 
+import com.lonelypluto.pdflibrary.constants.CommConsts;
 import com.lonelypluto.pdflibrary.utils.SharedPreferencesUtil;
 
 import android.graphics.Paint;
@@ -70,8 +71,8 @@ public abstract class PageView extends ViewGroup {
 
     public PageView(final Context c, final Point parentSize, final Bitmap sharedHqBm) {
         super(c);
-        this.LINK_COLOR = -2130749662;
-        this.INK_COLOR = -16777216;
+        this.INK_COLOR = Color.parseColor(CommConsts.COLOR_PALETTE_LIST.get(0));
+        this.LINK_COLOR = Color.argb(123, Color.red(INK_COLOR), Color.green(INK_COLOR), Color.blue(INK_COLOR));
         this.INK_THICKNESS = 10.0f;
         this.mHandler = new Handler();
         this.mContext = c;

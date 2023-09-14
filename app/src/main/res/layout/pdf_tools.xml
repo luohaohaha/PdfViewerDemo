@@ -319,37 +319,4 @@
                 android:src="@drawable/ic_check_white_48dp" />
         </RelativeLayout>
     </ViewAnimator>
-
-    <!--底部拖动-->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true">
-
-        <SeekBar
-            android:id="@+id/pageSlider"
-            android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_alignParentBottom="true"
-            android:layout_toStartOf="@+id/pageNumber"
-            android:background="@color/colorDarkTrans"
-            android:paddingStart="16dp"
-            android:paddingTop="12dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp" />
-
-        <TextView
-            android:id="@+id/pageNumber"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/pageSlider"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:background="@color/colorDarkTrans"
-            android:gravity="center_vertical"
-            android:paddingEnd="16dp"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#FFFFFF" />
-    </RelativeLayout>
 </RelativeLayout>
