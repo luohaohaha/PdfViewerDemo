@@ -14,6 +14,7 @@ import android.os.Environment;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.DrawableCompat;
 
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -527,7 +528,11 @@ public class MoreSetActivity extends AppCompatActivity {
                 mPopupWindow.dismiss();
             }
         });
-        mPopupWindow.showAsDropDown(muPDFReaderView.getCurrentView(), (int) annotation.right / 2, (int) -((muPDFReaderView.getCurrentView().getHeight() - annotation.bottom) + (annotation.bottom - annotation.top) + 100));
+        View pageView = muPDFReaderView.getCurrentView();
+        float scale = muPDFReaderView.getCurrentScale();
+        int left = (int) (pageView.getLeft() + annotation.left * scale + (annotation.right * scale - annotation.left * scale) / 2 - 100);
+        int top = (int) (pageView.getTop() + annotation.top * scale);
+        mPopupWindow.showAtLocation(pageView, Gravity.LEFT | Gravity.TOP, left, top);
     }
 
     @Override
