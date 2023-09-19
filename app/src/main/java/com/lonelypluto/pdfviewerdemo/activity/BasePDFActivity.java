@@ -25,7 +25,7 @@ import com.lonelypluto.pdfviewerdemo.R;
 public class BasePDFActivity extends AppCompatActivity {
     private static final String TAG = BasePDFActivity.class.getSimpleName();
 
-    private String filePath = Environment.getExternalStorageDirectory() + "/pdf_t1.pdf"; // 文件路径
+    private String filePath = Environment.getExternalStorageDirectory() + "/android-programming-for-beginners.pdf"; // 文件路径
 
     private MuPDFCore muPDFCore;// 加载mupdf.so文件
     private MuPDFReaderView muPDFReaderView;// 显示pdf的view

@@ -64,4 +64,9 @@ public interface MuPDFView
     void setPaintStrockWidth(final float p0);
     
     float getCurrentScale();
+
+    void  undo();
+    void  redo();
+
+    void complete();
 }

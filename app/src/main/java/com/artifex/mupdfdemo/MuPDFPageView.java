@@ -7,6 +7,7 @@ package com.artifex.mupdfdemo;
 import android.os.Build;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.annotation.TargetApi;
 import android.content.ClipData;
@@ -15,6 +16,7 @@ import android.net.Uri;
 import android.text.method.TransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.LayoutInflater;
@@ -31,6 +33,7 @@ import android.graphics.RectF;
 import android.os.AsyncTask;
 
 public class MuPDFPageView extends PageView implements MuPDFView {
+    private static final String TAG = "MuPDFPageView";
     private final MuPDFCore mCore;
     private AsyncTask<Void, Void, PassClickResult> mPassClick;
     private RectF[] mWidgetAreas;
@@ -55,6 +58,9 @@ public class MuPDFPageView extends PageView implements MuPDFView {
     private AsyncTask<Void, Void, String> mCheckSignature;
     private AsyncTask<Void, Void, Boolean> mSign;
     private Runnable changeReporter;
+
+    private List<AnnotationStep> mStepList = new ArrayList<>();
+    private int mStep = -1;
 
     public MuPDFPageView(final Context c, final MuPDFCore core, final Point parentSize, final Bitmap sharedHqBm) {
         super(c, parentSize, sharedHqBm);
@@ -421,7 +427,15 @@ public class MuPDFPageView extends PageView implements MuPDFView {
         }
         (this.mAddInk = new AsyncTask<Object, Void, Void>() {
             protected Void doInBackground(final Object... params) {
-                MuPDFPageView.this.mCore.addInkAnnotation(MuPDFPageView.this.mPageNumber, (PointF[][]) params[0], (int) params[1], (float) params[2]);
+                PointF[][] arcs = (PointF[][]) params[0];
+                int color = (int) params[1];
+                float inkThickness = (float) params[2];
+                MuPDFPageView.this.mCore.addInkAnnotation(MuPDFPageView.this.mPageNumber, arcs, color, inkThickness);
+                if (-1 != mStep) {
+                    mStepList = mStepList.subList(0, mStep );
+                }
+                mStep = -1;
+                mStepList.add(new AnnotationStep(mPageNumber, null, arcs, Annotation.Type.INK, color, inkThickness));
                 return null;
             }
 
@@ -475,6 +489,11 @@ public class MuPDFPageView extends PageView implements MuPDFView {
     @Override
     protected void addMarkup(final PointF[] quadPoints, final Annotation.Type type, int color) {
         this.mCore.addMarkupAnnotation(this.mPageNumber, quadPoints, type, color);
+        if (-1 != mStep) {
+            mStepList = mStepList.subList(0, mStep );
+        }
+        mStep = -1;
+        mStepList.add(new AnnotationStep(mPageNumber, quadPoints, null, type, color, 0f));
     }
 
     private void loadAnnotations() {
@@ -543,6 +562,66 @@ public class MuPDFPageView extends PageView implements MuPDFView {
             this.mDeleteAnnotation = null;
         }
         super.releaseResources();
+    }
+
+    @Override
+    public void undo() {
+        if (null == mStepList || mStepList.isEmpty() || 0 == mStep) {
+            Log.d(TAG, " no undo step");
+            return;
+        }
+        if (-1 == mStep) {
+            mStep = mStepList.size();
+        }
+        mStep--;
+        mSelectedAnnotationIndex = mStep;
+        deleteSelectedAnnotation();
+    }
+
+    @Override
+    public void redo() {
+        if (null == mStepList || mStepList.isEmpty() || mStep >= mStepList.size() || -1 == mStep) {
+            Log.d(TAG, " no redo step");
+            return;
+        }
+        AnnotationStep step = mStepList.get(mStep);
+        if (null != step) {
+            switch (step.getType()) {
+                case INK:
+                    new AsyncTask<Object, Void, Void>() {
+                        protected Void doInBackground(final Object... params) {
+                            mCore.addInkAnnotation(mPageNumber, step.getArcs(), step.getColor(), step.getInkThickness());
+                            return null;
+                        }
+
+                        protected void onPostExecute(final Void result) {
+                            MuPDFPageView.this.update();
+                            MuPDFPageView.this.loadAnnotations();
+                        }
+                    }.execute();
+                    break;
+                default:
+                    new AsyncTask<Object, Void, Void>() {
+                        protected Void doInBackground(final Object... params) {
+                            mCore.addMarkupAnnotation(mPageNumber, step.getQuadPoints(), step.getType(), step.getColor());
+                            return null;
+                        }
+
+                        protected void onPostExecute(final Void result) {
+                            MuPDFPageView.this.loadAnnotations();
+                            MuPDFPageView.this.update();
+                        }
+                    }.execute();
+                    break;
+            }
+            mStep++;
+        }
+    }
+
+    @Override
+    public void complete() {
+        mStepList.clear();
+        mStep = -1;
     }
 
     public interface IAnnotationOnClickListener {

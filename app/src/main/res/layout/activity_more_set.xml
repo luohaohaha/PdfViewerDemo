@@ -63,4 +63,11 @@
 
     </com.sa90.materialarcmenu.ArcMenu>
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/tool_bar"
+        android:layout_width="match_parent"
+        android:background="?colorPrimary"
+        android:layout_height="wrap_content"
+        />
+
 </FrameLayout>

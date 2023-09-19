@@ -11,13 +11,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +44,7 @@ import com.artifex.mupdfdemo.MuPDFReaderView;
 import com.artifex.mupdfdemo.MuPDFReaderViewListener;
 import com.artifex.mupdfdemo.MuPDFView;
 import com.artifex.mupdfdemo.OutlineActivityData;
+import com.artifex.mupdfdemo.PageView;
 import com.artifex.mupdfdemo.ReaderView;
 import com.artifex.mupdfdemo.SearchTaskResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -106,6 +111,8 @@ public class MoreSetActivity extends AppCompatActivity {
     private int mSelectColorPosition = 0;
     private String mSelectColor = "";
 
+    private Toolbar mToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,7 +141,9 @@ public class MoreSetActivity extends AppCompatActivity {
         mFabHighlight = findViewById(R.id.menu_highlight);
         mFabUnderLine = findViewById(R.id.menu_under_line);
         mFabStrikeOut = findViewById(R.id.menu_strike_out);
-
+        mToolbar = findViewById(R.id.tool_bar);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().hide();
         mFabColorPalette.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -169,10 +178,10 @@ public class MoreSetActivity extends AppCompatActivity {
         muPDFReaderView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (MotionEvent.ACTION_UP == event.getAction() || MotionEvent.ACTION_CANCEL == event.getAction()) {
+                if (MotionEvent.ACTION_UP == event.getAction() || MotionEvent.ACTION_CANCEL == event.getAction() ) {
                     MuPDFReaderView.Mode mode = muPDFReaderView.getMode();
-                    OnAcceptButtonClick(v);
-                    return mode == MuPDFReaderView.Mode.Selecting || mode == MuPDFReaderView.Mode.Drawing;
+                    OnAcceptButtonClick(v,false);
+//                    return mode == MuPDFReaderView.Mode.Selecting || mode == MuPDFReaderView.Mode.Drawing;
                 }
                 return false;
             }
@@ -236,6 +245,41 @@ public class MoreSetActivity extends AppCompatActivity {
             }
         });
     }*/
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_tool_edit, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.edit_undo:
+                MuPDFView pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
+                if( null != pageView){
+                    pageView.undo();
+                }
+                return true;
+            case R.id.edit_redo:
+                pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
+                if( null != pageView){
+                    pageView.redo();
+                }
+                return true;
+            case R.id.edit_complete:
+                if (getSupportActionBar().isShowing()) {
+                    getSupportActionBar().hide();
+                }
+                pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
+                if( null != pageView){
+                    pageView.complete();
+                }
+                OnAcceptButtonClick(item.getActionView(),true);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * 初始化工具栏
@@ -893,7 +937,7 @@ public class MoreSetActivity extends AppCompatActivity {
      *
      * @param v
      */
-    public void OnAcceptButtonClick(View v) {
+    public void OnAcceptButtonClick(View v , boolean complete) {
         MuPDFView pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
         boolean success = false;
         if (null == mAcceptMode)
@@ -903,7 +947,7 @@ public class MoreSetActivity extends AppCompatActivity {
                 if (pageView != null)
                     success = pageView.copySelection();
 //                mTopBarMode = TopBarMode.Main;
-                showInfo(success ? getString(com.lonelypluto.pdfviewerdemo.R.string.copied_to_clipboard) : getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
+//                showInfo(success ? getString(com.lonelypluto.pdfviewerdemo.R.string.copied_to_clipboard) : getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
                 break;
             case Highlight:
                 // 高亮
@@ -911,37 +955,39 @@ public class MoreSetActivity extends AppCompatActivity {
                     success = pageView.markupSelection(Annotation.Type.HIGHLIGHT);
                 }
 //                mTopBarMode = TopBarMode.Annot;
-                if (!success) {
-                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
-                }
+//                if (!success) {
+//                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
+//                }
                 break;
             case Underline:
                 if (pageView != null)
                     success = pageView.markupSelection(Annotation.Type.UNDERLINE);
 //                mTopBarMode = TopBarMode.Annot;
-                if (!success)
-                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
+//                if (!success)
+//                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
                 break;
 
             case StrikeOut:
                 if (pageView != null)
                     success = pageView.markupSelection(Annotation.Type.STRIKEOUT);
 //                mTopBarMode = TopBarMode.Annot;
-                if (!success)
-                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
+//                if (!success)
+//                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.no_text_selected));
                 break;
 
             case Ink:
                 if (pageView != null)
                     success = pageView.saveDraw();
 //                mTopBarMode = TopBarMode.Annot;
-                if (!success)
-                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.nothing_to_save));
+//                if (!success)
+//                    showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.nothing_to_save));
                 break;
         }
 //        mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
-        muPDFReaderView.setMode(MuPDFReaderView.Mode.Viewing);
-        mAcceptMode = null;
+        if( complete ) {
+            muPDFReaderView.setMode(MuPDFReaderView.Mode.Viewing);
+            mAcceptMode = null;
+        }
     }
 
     /**
@@ -988,7 +1034,7 @@ public class MoreSetActivity extends AppCompatActivity {
      */
     private void showInfo(String message) {
 
-        LayoutInflater inflater = getLayoutInflater();
+      /*  LayoutInflater inflater = getLayoutInflater();
         View toastLayout = inflater.inflate(com.lonelypluto.pdfviewerdemo.R.layout.toast,
                 (ViewGroup) findViewById(com.lonelypluto.pdfviewerdemo.R.id.toast_root_view));
 
@@ -999,7 +1045,10 @@ public class MoreSetActivity extends AppCompatActivity {
         toast.setGravity(Gravity.FILL_HORIZONTAL | Gravity.BOTTOM, 0, 0);
         toast.setDuration(Toast.LENGTH_LONG);
         toast.setView(toastLayout);
-        toast.show();
+        toast.show();*/
+        if (!getSupportActionBar().isShowing()) {
+            getSupportActionBar().show();
+        }
     }
 
     /**
