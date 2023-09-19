@@ -2,7 +2,7 @@
 pdf阅读器，基于MuPDF开发，支持标注(高亮、下划线、删除线、手绘)
 PdfViewerDemo is developed within the [mupdf](https://mupdf.com/downloads/) project.
 # Screenshots
-![效果预览](screenshot/SVID_20230919_183804_1.gif)
+![效果预览](screenshot/SVID_20230919_184539_1.gif)
 
 # Thanks
 [PdfViewerDemo][2]
@@ -16,3 +16,4 @@ PdfViewerDemo is developed within the [mupdf](https://mupdf.com/downloads/) proj
 * addMarkupAnnotation新增颜色入参，支持对下划线、高亮、删除线的颜色设置(mupdf.c修改)
 * 去除不用的功能(设置链接颜色、搜索、复制文字、画笔size、outline)
 * 画笔画完之后，Annotation点击不能删除问题
+* add undo redo (2023-09-19)
