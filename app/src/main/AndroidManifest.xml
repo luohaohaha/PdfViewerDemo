@@ -8,15 +8,16 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
-            android:exported="true">
+        <activity
+            android:name=".LibraryActivity"
+            android:exported="true"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -38,7 +39,42 @@
 
         <activity
             android:name=".activity.MoreSetActivity"
-            android:screenOrientation="portrait" />
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/epub+zip" />
+                <data android:mimeType="image/svg+xml" />
+                <data android:mimeType="application/xhtml+xml" />
+                <data android:mimeType="application/x-cbz" />
+                <data android:mimeType="application/vnd.ms-xpsdocument" />
+            </intent-filter>
+
+            <!--This intent filter applies to file types where Android does-->
+            <!--not have a supported mime type.-->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="*/*" />
+                <data android:host="*" />
+                <data android:pathPattern="/.*\.xps" />
+                <data android:pathPattern="/.*\.cbz" />
+                <data android:pathPattern="/.*\.epub" />
+                <data android:pathPattern="/.*\.fb2" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".activity.SignActivity"

@@ -23,7 +23,7 @@
         android:layout_gravity="bottom|right"
         app:menu_animation_time="200"
         app:menu_open="arc_left"
-        app:menu_radius="120dp"
+        app:menu_radius="150dp"
         app:menu_scr="@drawable/baseline_edit_24">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -59,6 +59,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/baseline_format_strikethrough_24"
+            app:fabSize="mini" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/menu_screen_shot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_screenshot_24"
             app:fabSize="mini" />
 
     </com.sa90.materialarcmenu.ArcMenu>

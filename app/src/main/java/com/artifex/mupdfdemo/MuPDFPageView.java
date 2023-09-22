@@ -60,7 +60,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
     private Runnable changeReporter;
 
     private List<AnnotationStep> mStepList = new ArrayList<>();
-    private int mStep = -1;
+    private volatile int mStep = -1;
 
     public MuPDFPageView(final Context c, final MuPDFCore core, final Point parentSize, final Bitmap sharedHqBm) {
         super(c, parentSize, sharedHqBm);
@@ -624,7 +624,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
         mStep = -1;
     }
 
-    public interface IAnnotationOnClickListener {
-        void onClick(Annotation annotation, int page, int index);
+    public int getStep() {
+        return mStep;
     }
 }

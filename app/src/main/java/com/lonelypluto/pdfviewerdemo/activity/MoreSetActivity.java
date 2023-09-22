@@ -1,11 +1,16 @@
 package com.lonelypluto.pdfviewerdemo.activity;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.drawable.DrawableCompat;
 
+import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -49,11 +57,19 @@ import com.artifex.mupdfdemo.ReaderView;
 import com.artifex.mupdfdemo.SearchTaskResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lonelypluto.pdflibrary.constants.CommConsts;
+import com.lonelypluto.pdflibrary.utils.CommTools;
+import com.lonelypluto.pdflibrary.utils.FileHelper;
 import com.lonelypluto.pdflibrary.utils.SharedPreferencesUtil;
 import com.lonelypluto.pdfviewerdemo.R;
 import com.sa90.materialarcmenu.ArcMenu;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * @Description: 一些主要方法的设置，在已有功能的基础上增加了一些动态设置参数的方法
@@ -113,10 +129,16 @@ public class MoreSetActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
 
+    private int maxScreenshot = 10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more_set);
+        Uri data = getIntent().getData();
+        if (null != data) {
+            filePath = data.getPath();
+        }
         initView();
     }
 
@@ -178,12 +200,18 @@ public class MoreSetActivity extends AppCompatActivity {
         muPDFReaderView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (MotionEvent.ACTION_UP == event.getAction() || MotionEvent.ACTION_CANCEL == event.getAction() ) {
+                if (MotionEvent.ACTION_UP == event.getAction() || MotionEvent.ACTION_CANCEL == event.getAction()) {
                     MuPDFReaderView.Mode mode = muPDFReaderView.getMode();
-                    OnAcceptButtonClick(v,false);
+                    OnAcceptButtonClick(v, false);
 //                    return mode == MuPDFReaderView.Mode.Selecting || mode == MuPDFReaderView.Mode.Drawing;
                 }
                 return false;
+            }
+        });
+        findViewById(R.id.menu_screen_shot).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                screenShot();
             }
         });
         mSelectColor = CommConsts.COLOR_PALETTE_LIST.get(mSelectColorPosition);
@@ -257,13 +285,13 @@ public class MoreSetActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.edit_undo:
                 MuPDFView pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
-                if( null != pageView){
+                if (null != pageView) {
                     pageView.undo();
                 }
                 return true;
             case R.id.edit_redo:
                 pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
-                if( null != pageView){
+                if (null != pageView) {
                     pageView.redo();
                 }
                 return true;
@@ -272,10 +300,10 @@ public class MoreSetActivity extends AppCompatActivity {
                     getSupportActionBar().hide();
                 }
                 pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
-                if( null != pageView){
+                if (null != pageView) {
                     pageView.complete();
                 }
-                OnAcceptButtonClick(item.getActionView(),true);
+                OnAcceptButtonClick(item.getActionView(), true);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -305,7 +333,7 @@ public class MoreSetActivity extends AppCompatActivity {
         mAlertBuilder = new AlertDialog.Builder(this);
 
         // 通过MuPDFCore打开pdf文件
-        muPDFCore = openFile(filePath);
+        muPDFCore = openFile(getIntent().getData());
         // 搜索设为空
         SearchTaskResult.set(null);
         // 判断如果core为空，提示不能打开文件
@@ -374,17 +402,112 @@ public class MoreSetActivity extends AppCompatActivity {
         setListener();
     }
 
+    private void screenShot() {
+        Executors.newCachedThreadPool().submit(new Runnable() {
+            @Override
+            public void run() {
+                View view = muPDFReaderView.getDisplayedView();
+                Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight() * maxScreenshot, Bitmap.Config.RGB_565);
+                for (int i = 0; i < maxScreenshot; i++) {
+                    view = muPDFReaderView.getDisplayedView();
+                    Canvas canvas = new Canvas(bitmap);
+                    view.setDrawingCacheEnabled(true);
+                    canvas.drawBitmap(view.getDrawingCache(), 0, i * view.getHeight(), null);
+                    view.setDrawingCacheEnabled(false);
+                    muPDFReaderView.moveToNext();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    String title = System.currentTimeMillis() + "-screenshot.png";
+                    String path = getExternalCacheDir().getAbsoluteFile() + "/" + title;
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(path));
+                    if (!bitmap.isRecycled()) {
+                        bitmap.recycle();
+                    }
+                    CommTools.saveToGallery(MoreSetActivity.this, path, title, title);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     /**
      * 打开文件
      *
      * @param path 文件路径
      * @return
      */
-    private MuPDFCore openFile(String path) {
+    private MuPDFCore openFile(Uri path) {
 
         Log.e(TAG, "Trying to open " + path);
         try {
-            muPDFCore = new MuPDFCore(this, path);
+            Intent intent = getIntent();
+            if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+                Uri uri = intent.getData();
+                String mimetype = getIntent().getType();
+
+                if (uri == null) {
+                    return null;
+                }
+
+                String mDocKey = uri.toString();
+
+                Log.i(TAG, "OPEN URI " + uri.toString());
+                Log.i(TAG, "  MAGIC (Intent) " + mimetype);
+
+                String mDocTitle = null;
+                long size = -1;
+                Cursor cursor = null;
+
+                try {
+                    cursor = getContentResolver().query(uri, null, null, null, null);
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int idx;
+
+                        idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        if (idx >= 0 && cursor.getType(idx) == Cursor.FIELD_TYPE_STRING)
+                            mDocTitle = cursor.getString(idx);
+
+                        idx = cursor.getColumnIndex(OpenableColumns.SIZE);
+                        if (idx >= 0 && cursor.getType(idx) == Cursor.FIELD_TYPE_INTEGER)
+                            size = cursor.getLong(idx);
+
+                        if (size == 0)
+                            size = -1;
+                    }
+                } catch (Exception x) {
+                    // Ignore any exception and depend on default values for title
+                    // and size (unless one was decoded
+                } finally {
+                    if (cursor != null)
+                        cursor.close();
+                }
+
+                Log.i(TAG, "  NAME " + mDocTitle);
+                Log.i(TAG, "  SIZE " + size);
+
+                if (mimetype == null || mimetype.equals("application/octet-stream")) {
+                    mimetype = getContentResolver().getType(uri);
+                    Log.i(TAG, "  MAGIC (Resolved) " + mimetype);
+                }
+                if (mimetype == null || mimetype.equals("application/octet-stream")) {
+                    mimetype = mDocTitle;
+                    Log.i(TAG, "  MAGIC (Filename) " + mimetype);
+                }
+
+                try {
+                    muPDFCore = new MuPDFCore(this, FileHelper.getRealPathFromURI(this,path));
+                    SearchTaskResult.set(null);
+                } catch (Exception x) {
+                    return null;
+                }
+            }
+//            muPDFCore = new MuPDFCore(this, path);
             // 新建：删除旧的目录数据
             OutlineActivityData.set(null);
         } catch (Exception e) {
@@ -393,6 +516,58 @@ public class MoreSetActivity extends AppCompatActivity {
         } catch (OutOfMemoryError e) {
             //  out of memory is not an Exception, so we catch it separately.
             Log.e(TAG, "openFile catch: OutOfMemoryError " + e.toString());
+            return null;
+        }
+        return muPDFCore;
+    }
+
+    private MuPDFCore openCore(Uri uri, long size, String mimetype) throws IOException {
+        ContentResolver cr = getContentResolver();
+
+        Log.i(TAG, "Opening document " + uri);
+
+        InputStream is = cr.openInputStream(uri);
+        byte[] buf = null;
+        int used = -1;
+        try {
+            final int limit = 8 * 1024 * 1024;
+            if (size < 0) { // size is unknown
+                buf = new byte[limit];
+                used = is.read(buf);
+                boolean atEOF = is.read() == -1;
+                if (used < 0 || (used == limit && !atEOF)) // no or partial data
+                    buf = null;
+            } else if (size <= limit) { // size is known and below limit
+                buf = new byte[(int) size];
+                used = is.read(buf);
+                if (used < 0 || used < size) // no or partial data
+                    buf = null;
+            }
+            if (buf != null && buf.length != used) {
+                byte[] newbuf = new byte[used];
+                System.arraycopy(buf, 0, newbuf, 0, used);
+                buf = newbuf;
+            }
+        } catch (OutOfMemoryError e) {
+            buf = null;
+        } finally {
+            is.close();
+        }
+
+        if (buf != null) {
+            Log.i(TAG, "  Opening document from memory buffer of size " + buf.length);
+            return openBuffer(buf, mimetype);
+        } else {
+            Log.i(TAG, "  Opening document from stream");
+            return null;
+        }
+    }
+
+    private MuPDFCore openBuffer(byte buffer[], String magic) {
+        try {
+            muPDFCore = new MuPDFCore(this, buffer, magic);
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening document buffer: " + e);
             return null;
         }
         return muPDFCore;
@@ -509,6 +684,7 @@ public class MoreSetActivity extends AppCompatActivity {
 //                        muPDFCore.countPages()));
 //                mPageSlider.setMax((muPDFCore.countPages() - 1) * mPageSliderRes);
 //                mPageSlider.setProgress(i * mPageSliderRes);
+                updateColor();
             }
 
             @Override
@@ -937,7 +1113,7 @@ public class MoreSetActivity extends AppCompatActivity {
      *
      * @param v
      */
-    public void OnAcceptButtonClick(View v , boolean complete) {
+    public void OnAcceptButtonClick(View v, boolean complete) {
         MuPDFView pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
         boolean success = false;
         if (null == mAcceptMode)
@@ -984,7 +1160,7 @@ public class MoreSetActivity extends AppCompatActivity {
                 break;
         }
 //        mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
-        if( complete ) {
+        if (complete) {
             muPDFReaderView.setMode(MuPDFReaderView.Mode.Viewing);
             mAcceptMode = null;
         }
