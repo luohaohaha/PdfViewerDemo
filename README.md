@@ -2,7 +2,7 @@
 pdf阅读器，基于MuPDF开发，支持标注(高亮、下划线、删除线、手绘)
 PdfViewerDemo is developed within the [mupdf](https://mupdf.com/downloads/) project.
 # Screenshots
-[效果预览](screenshot/SVID_20230922_175843_1.mp4)
+[效果预览](https://drive.google.com/file/d/1FrEztt9D0hCeGwGK61CYlsqeflTzgHY1/view?usp=sharing)
 # Thanks
 [PdfViewerDemo][2]
 
