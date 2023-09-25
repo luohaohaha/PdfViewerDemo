@@ -63,7 +63,7 @@ public class ReaderView extends AdapterView<Adapter> implements GestureDetector.
     
     public ReaderView(final Context context) {
         super(context);
-        this.HORIZONTAL_SCROLLING = true;
+        this.HORIZONTAL_SCROLLING = false;
         this.mChildViews = (SparseArray<View>)new SparseArray(3);
         this.mViewCache = new LinkedList<View>();
         this.mScale = 1.0f;
@@ -79,7 +79,7 @@ public class ReaderView extends AdapterView<Adapter> implements GestureDetector.
     
     public ReaderView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
-        this.HORIZONTAL_SCROLLING = true;
+        this.HORIZONTAL_SCROLLING = false;
         this.mChildViews = (SparseArray<View>)new SparseArray(3);
         this.mViewCache = new LinkedList<View>();
         this.mScale = 1.0f;
@@ -103,7 +103,7 @@ public class ReaderView extends AdapterView<Adapter> implements GestureDetector.
     
     public ReaderView(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
-        this.HORIZONTAL_SCROLLING = true;
+        this.HORIZONTAL_SCROLLING = false;
         this.mChildViews = (SparseArray<View>)new SparseArray(3);
         this.mViewCache = new LinkedList<View>();
         this.mScale = 1.0f;
