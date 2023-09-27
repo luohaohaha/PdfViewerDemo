@@ -21,13 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.drawable.DrawableCompat;
 
-import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -52,7 +48,6 @@ import com.artifex.mupdfdemo.MuPDFReaderView;
 import com.artifex.mupdfdemo.MuPDFReaderViewListener;
 import com.artifex.mupdfdemo.MuPDFView;
 import com.artifex.mupdfdemo.OutlineActivityData;
-import com.artifex.mupdfdemo.PageView;
 import com.artifex.mupdfdemo.ReaderView;
 import com.artifex.mupdfdemo.SearchTaskResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -61,9 +56,9 @@ import com.lonelypluto.pdflibrary.utils.CommTools;
 import com.lonelypluto.pdflibrary.utils.FileHelper;
 import com.lonelypluto.pdflibrary.utils.SharedPreferencesUtil;
 import com.lonelypluto.pdfviewerdemo.R;
+import com.lonelypluto.pdfviewerdemo.widget.MoveTouchListener;
 import com.sa90.materialarcmenu.ArcMenu;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -129,7 +124,13 @@ public class MoreSetActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
 
-    private int maxScreenshot = 10;
+    private int maxScreenshot = 30;
+
+    private ImageView mFloatMenu;
+
+    private PopupWindow mPopupWindow;
+
+    private TextView mPopupMenuHighlight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +165,7 @@ public class MoreSetActivity extends AppCompatActivity {
         mFabUnderLine = findViewById(R.id.menu_under_line);
         mFabStrikeOut = findViewById(R.id.menu_strike_out);
         mToolbar = findViewById(R.id.tool_bar);
+        mFloatMenu = findViewById(R.id.float_menu);
         setSupportActionBar(mToolbar);
         getSupportActionBar().hide();
         mFabColorPalette.setOnClickListener(new View.OnClickListener() {
@@ -214,8 +216,49 @@ public class MoreSetActivity extends AppCompatActivity {
                 screenShot();
             }
         });
+        mFloatMenu.setOnTouchListener(new MoveTouchListener(true));
+        mFloatMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopupMenu(v);
+            }
+        });
         mSelectColor = CommConsts.COLOR_PALETTE_LIST.get(mSelectColorPosition);
         updateColor();
+    }
+
+    private void showPopupMenu(View v) {
+        if (null != mPopupWindow && mPopupWindow.isShowing()) {
+            Log.d(TAG, " mPopupWindow is showing , no handle ");
+            mPopupWindow.dismiss();
+            return;
+        }
+        if (null == mPopupWindow) {
+            View popView = View.inflate(this, R.layout.layout_popup_memu, null);
+            mPopupMenuHighlight = popView.findViewById(R.id.popup_menu_highlight);
+            TextView mPopupMenuLongScreen = popView.findViewById(R.id.popup_menu_long_screen);
+            TextView mPopupMenuExport = popView.findViewById(R.id.popup_menu_export);
+            mPopupWindow = new PopupWindow(popView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            mPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//            mPopupWindow.setOutsideTouchable(true);
+//            mPopupWindow.setTouchable(true);
+//            mPopupWindow.setFocusable(true);
+
+            mPopupMenuHighlight.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    v.setSelected(!v.isSelected());
+                    if (v.isSelected()) {
+                        OnHighlightButtonClick(v);
+                    } else {
+                        OnAcceptButtonClick(v, true);
+                        Toast.makeText(MoreSetActivity.this, "文本高亮已关闭", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+        }
+        mPopupWindow.showAsDropDown(v, 0, 0);
     }
 
     /*private void setPDFVoid(){
@@ -269,7 +312,7 @@ public class MoreSetActivity extends AppCompatActivity {
         btn_paintstrokewidth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setPaintStrockWidth(20.0f);
+                setPaintStrokeWidth(20.0f);
             }
         });
     }*/
@@ -296,9 +339,6 @@ public class MoreSetActivity extends AppCompatActivity {
                 }
                 return true;
             case R.id.edit_complete:
-                if (getSupportActionBar().isShowing()) {
-                    getSupportActionBar().hide();
-                }
                 pageView = (MuPDFView) muPDFReaderView.getDisplayedView();
                 if (null != pageView) {
                     pageView.complete();
@@ -408,13 +448,17 @@ public class MoreSetActivity extends AppCompatActivity {
             public void run() {
                 View view = muPDFReaderView.getDisplayedView();
                 Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight() * maxScreenshot, Bitmap.Config.RGB_565);
-                for (int i = 0; i < maxScreenshot; i++) {
+                int maxPage = Math.min(maxScreenshot, muPDFCore.countPages());
+                Log.d(TAG, " maxPage  is " + maxPage);
+                for (int i = 0; i < maxPage; i++) {
                     view = muPDFReaderView.getDisplayedView();
                     Canvas canvas = new Canvas(bitmap);
                     view.setDrawingCacheEnabled(true);
                     canvas.drawBitmap(view.getDrawingCache(), 0, i * view.getHeight(), null);
                     view.setDrawingCacheEnabled(false);
-                    muPDFReaderView.moveToNext();
+                    if (i < maxPage - 1) {
+                        muPDFReaderView.moveToNext();
+                    }
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
@@ -501,7 +545,7 @@ public class MoreSetActivity extends AppCompatActivity {
                 }
 
                 try {
-                    muPDFCore = new MuPDFCore(this, FileHelper.getRealPathFromURI(this,path));
+                    muPDFCore = new MuPDFCore(this, FileHelper.getRealPathFromURI(this, path));
                     SearchTaskResult.set(null);
                 } catch (Exception x) {
                     return null;
@@ -800,8 +844,8 @@ public class MoreSetActivity extends AppCompatActivity {
      *
      * @param inkThickness 粗细值
      */
-    private void setPaintStrockWidth(float inkThickness) {
-        muPDFReaderView.setPaintStrockWidth(inkThickness);
+    private void setPaintStrokeWidth(float inkThickness) {
+        muPDFReaderView.setPaintStrokeWidth(inkThickness);
     }
 
     /**
@@ -1008,6 +1052,7 @@ public class MoreSetActivity extends AppCompatActivity {
         muPDFReaderView.setMode(MuPDFReaderView.Mode.Selecting);
 //        mAnnotTypeText.setText(com.lonelypluto.pdfviewerdemo.R.string.pdf_tools_highlight);
         showInfo(getString(com.lonelypluto.pdfviewerdemo.R.string.select_text));
+        Toast.makeText(this, "文本高亮已开启", Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -1163,6 +1208,13 @@ public class MoreSetActivity extends AppCompatActivity {
         if (complete) {
             muPDFReaderView.setMode(MuPDFReaderView.Mode.Viewing);
             mAcceptMode = null;
+            if (getSupportActionBar().isShowing()) {
+                getSupportActionBar().hide();
+            }
+            if ( null != mPopupMenuHighlight && mPopupMenuHighlight.isSelected()) {
+                mPopupMenuHighlight.setSelected(false);
+                Toast.makeText(this, "文本高亮已关闭", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

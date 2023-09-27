@@ -408,7 +408,7 @@ public abstract class PageView extends ViewGroup {
         this.INK_COLOR = color;
     }
 
-    public void setPaintStrockWidth(final float inkThickness) {
+    public void setPaintStrokeWidth(final float inkThickness) {
         this.INK_THICKNESS = inkThickness;
     }
 

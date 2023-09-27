@@ -61,7 +61,7 @@ public interface MuPDFView
     
     void setInkColor(final int p0);
     
-    void setPaintStrockWidth(final float p0);
+    void setPaintStrokeWidth(final float p0);
     
     float getCurrentScale();
 

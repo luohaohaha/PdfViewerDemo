@@ -72,10 +72,10 @@ public class MuPDFReaderView extends ReaderView {
         }
     }
 
-    public void setPaintStrockWidth(final float inkThickness) {
+    public void setPaintStrokeWidth(final float inkThickness) {
         View currentView = this.getCurrentView();
         if (null != currentView && currentView instanceof MuPDFView) {
-            ((MuPDFView) currentView).setPaintStrockWidth(inkThickness);
+            ((MuPDFView) currentView).setPaintStrokeWidth(inkThickness);
         }
     }
 

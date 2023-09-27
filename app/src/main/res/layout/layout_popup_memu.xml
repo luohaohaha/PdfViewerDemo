@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_round_corner_15dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingLeft="8dp"
+    android:paddingTop="25dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="25dp">
+
+    <TextView
+        android:id="@+id/popup_menu_highlight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:button="@android:color/transparent"
+        android:drawableTop="@drawable/ic_popup_menu_highlight"
+        android:text="文本高亮"
+        android:textColor="@color/popup_menu_text_color"
+        android:textSize="10dp" />
+
+    <TextView
+        android:id="@+id/popup_menu_long_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp"
+        android:background="@android:color/transparent"
+        android:button="@android:color/transparent"
+        android:drawableTop="@mipmap/ic_popup_menu_long_screen"
+        android:text="长截图"
+        android:textColor="@color/popup_menu_text_color"
+        android:textSize="10dp" />
+
+    <TextView
+        android:id="@+id/popup_menu_export"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp"
+        android:background="@android:color/transparent"
+        android:button="@android:color/transparent"
+        android:drawableTop="@mipmap/ic_popup_menu_long_export"
+        android:text="文件导出"
+        android:textColor="@color/popup_menu_text_color"
+        android:textSize="10dp" />
+
+
+</LinearLayout>
