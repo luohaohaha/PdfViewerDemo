@@ -21,6 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
+        android:visibility="gone"
         app:menu_animation_time="200"
         app:menu_open="arc_left"
         app:menu_radius="150dp"
@@ -82,5 +83,28 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right|center"
         android:src="@mipmap/ic_float_menu" />
+
+
+    <LinearLayout
+        android:id="@+id/screenshot_menu_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_gravity="bottom">
+
+        <Button
+            android:id="@+id/screenshot_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="取消" />
+
+        <Button
+            android:id="@+id/screenshot_confirm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="确定" />
+    </LinearLayout>
 
 </FrameLayout>

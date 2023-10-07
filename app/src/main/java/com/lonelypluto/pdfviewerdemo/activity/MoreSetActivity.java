@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -65,6 +66,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @Description: 一些主要方法的设置，在已有功能的基础上增加了一些动态设置参数的方法
@@ -124,13 +126,20 @@ public class MoreSetActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
 
-    private int maxScreenshot = 30;
+    private int maxScreenshot = 15;
 
     private ImageView mFloatMenu;
 
     private PopupWindow mPopupWindow;
 
     private TextView mPopupMenuHighlight;
+
+    private View mScreenshotMenuContainer;
+    private Button mBtnScreenshotCancel, mBtnScreenshotConfirm;
+
+    private volatile AtomicBoolean mScreenShotCancel = new AtomicBoolean(false);
+    private volatile AtomicBoolean mScreenShotComplete = new AtomicBoolean(false);
+    private volatile AtomicBoolean mScreenShotRunning = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +175,10 @@ public class MoreSetActivity extends AppCompatActivity {
         mFabStrikeOut = findViewById(R.id.menu_strike_out);
         mToolbar = findViewById(R.id.tool_bar);
         mFloatMenu = findViewById(R.id.float_menu);
+        mScreenshotMenuContainer = findViewById(R.id.screenshot_menu_container);
+        mBtnScreenshotCancel = findViewById(R.id.screenshot_cancel);
+        mBtnScreenshotConfirm = findViewById(R.id.screenshot_confirm);
+        mScreenshotMenuContainer = findViewById(R.id.screenshot_menu_container);
         setSupportActionBar(mToolbar);
         getSupportActionBar().hide();
         mFabColorPalette.setOnClickListener(new View.OnClickListener() {
@@ -223,6 +236,20 @@ public class MoreSetActivity extends AppCompatActivity {
                 showPopupMenu(v);
             }
         });
+
+        mBtnScreenshotConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mScreenShotComplete.set(true);
+            }
+        });
+        mBtnScreenshotCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mScreenShotCancel.set(true);
+            }
+        });
+
         mSelectColor = CommConsts.COLOR_PALETTE_LIST.get(mSelectColorPosition);
         updateColor();
     }
@@ -254,6 +281,13 @@ public class MoreSetActivity extends AppCompatActivity {
                         OnAcceptButtonClick(v, true);
                         Toast.makeText(MoreSetActivity.this, "文本高亮已关闭", Toast.LENGTH_SHORT).show();
                     }
+                }
+            });
+
+            mPopupMenuLongScreen.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    screenShot();
                 }
             });
 
@@ -443,14 +477,27 @@ public class MoreSetActivity extends AppCompatActivity {
     }
 
     private void screenShot() {
+        if (mScreenShotRunning.get()) {
+            Log.d(TAG, "=== mScreenShotRunning , no handle == ");
+            return;
+        }
+        mScreenShotRunning.set(true);
+        if (!mScreenshotMenuContainer.isShown()) {
+            mScreenshotMenuContainer.setVisibility(View.VISIBLE);
+        }
         Executors.newCachedThreadPool().submit(new Runnable() {
             @Override
             public void run() {
                 View view = muPDFReaderView.getDisplayedView();
-                Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight() * maxScreenshot, Bitmap.Config.RGB_565);
                 int maxPage = Math.min(maxScreenshot, muPDFCore.countPages());
+                Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight() * maxPage, Bitmap.Config.RGB_565);
                 Log.d(TAG, " maxPage  is " + maxPage);
-                for (int i = 0; i < maxPage; i++) {
+                int i;
+                for (i = 0; i < maxPage; i++) {
+                    if (mScreenShotCancel.get() || mScreenShotComplete.get()) {
+                        Log.d(TAG, String.format(" break mScreenShotCancel is %s , mScreenShotComplete is %s ", mScreenShotCancel.get(), mScreenShotComplete.get()));
+                        break;
+                    }
                     view = muPDFReaderView.getDisplayedView();
                     Canvas canvas = new Canvas(bitmap);
                     view.setDrawingCacheEnabled(true);
@@ -466,6 +513,13 @@ public class MoreSetActivity extends AppCompatActivity {
                     }
                 }
                 try {
+                    if (mScreenShotCancel.get()) {
+                        Log.d(TAG, " === canceled == ");
+                        return;
+                    }
+                    if (i < maxPage - 1) {
+                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), view.getHeight() * i);
+                    }
                     String title = System.currentTimeMillis() + "-screenshot.png";
                     String path = getExternalCacheDir().getAbsoluteFile() + "/" + title;
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(path));
@@ -475,6 +529,16 @@ public class MoreSetActivity extends AppCompatActivity {
                     CommTools.saveToGallery(MoreSetActivity.this, path, title, title);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
+                } finally {
+                    mScreenShotCancel.set(false);
+                    mScreenShotComplete.set(false);
+                    mScreenShotRunning.set(false);
+                    Log.d(TAG, " ===== reset ===== ");
+                    runOnUiThread(() -> {
+                        if (mScreenshotMenuContainer.isShown()) {
+                            mScreenshotMenuContainer.setVisibility(View.GONE);
+                        }
+                    });
                 }
             }
         });
@@ -1211,7 +1275,7 @@ public class MoreSetActivity extends AppCompatActivity {
             if (getSupportActionBar().isShowing()) {
                 getSupportActionBar().hide();
             }
-            if ( null != mPopupMenuHighlight && mPopupMenuHighlight.isSelected()) {
+            if (null != mPopupMenuHighlight && mPopupMenuHighlight.isSelected()) {
                 mPopupMenuHighlight.setSelected(false);
                 Toast.makeText(this, "文本高亮已关闭", Toast.LENGTH_SHORT).show();
             }
