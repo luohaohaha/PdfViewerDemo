@@ -4,6 +4,8 @@
 
 package com.artifex.mupdfdemo;
 
+import static com.lonelypluto.pdflibrary.constants.CommConsts.HIGHLIGHT_RECT_OFFSET;
+
 import java.util.Iterator;
 
 import android.graphics.Color;
@@ -91,7 +93,7 @@ public abstract class PageView extends ViewGroup {
 
     protected abstract TextWord[][] getText();
 
-    protected abstract void addMarkup(final PointF[] p0, final Annotation.Type p1 , int color);
+    protected abstract void addMarkup(final PointF[] p0, final Annotation.Type p1, int color);
 
     private void reinit() {
         if (this.mDrawEntire != null) {
@@ -202,12 +204,12 @@ public abstract class PageView extends ViewGroup {
                     PageView.this.mBusyIndicator = new ProgressBar(PageView.this.mContext);
                     PageView.this.mBusyIndicator.setIndeterminate(true);
                     PageView.this.addView((View) PageView.this.mBusyIndicator);
-                    PageView.this.mBusyIndicator.setVisibility(4);
+                    PageView.this.mBusyIndicator.setVisibility(View.INVISIBLE);
                     PageView.this.mHandler.postDelayed((Runnable) new Runnable() {
                         @Override
                         public void run() {
                             if (PageView.this.mBusyIndicator != null) {
-                                PageView.this.mBusyIndicator.setVisibility(0);
+                                PageView.this.mBusyIndicator.setVisibility(VISIBLE);
                             }
                         }
                     }, 200L);
@@ -261,7 +263,7 @@ public abstract class PageView extends ViewGroup {
                             @Override
                             public void onEndLine() {
                                 if (!this.rect.isEmpty()) {
-                                    canvas.drawRect(this.rect.left * scale, this.rect.top * scale, this.rect.right * scale, this.rect.bottom * scale, paint);
+                                    canvas.drawRect(this.rect.left * scale, (this.rect.top + HIGHLIGHT_RECT_OFFSET) * scale, this.rect.right * scale, (this.rect.bottom - HIGHLIGHT_RECT_OFFSET) * scale, paint);
                                 }
                             }
                         });

@@ -4,6 +4,9 @@
 
 package com.artifex.mupdfdemo;
 
+import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE;
+import static com.lonelypluto.pdflibrary.constants.CommConsts.HIGHLIGHT_RECT_OFFSET;
+
 import android.os.Build;
 
 import java.util.ArrayList;
@@ -67,7 +70,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
         this.mSelectedAnnotationIndex = -1;
         this.mCore = core;
         (this.mTextEntryBuilder = new AlertDialog.Builder(c)).setTitle((CharSequence) this.getContext().getString(R.string.fill_out_text_field));
-        final LayoutInflater inflater = (LayoutInflater) c.getSystemService("layout_inflater");
+        final LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.mEditText = (EditText) inflater.inflate(R.layout.edittext_entry, (ViewGroup) null);
         this.mTextEntryBuilder.setView((View) this.mEditText);
         this.mTextEntryBuilder.setNegativeButton(R.string.cancel, (DialogInterface.OnClickListener) new DialogInterface.OnClickListener() {
@@ -123,7 +126,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
     }
 
     private void signWithKeyFile(final Uri uri) {
-        this.mPasswordEntry.getWindow().setSoftInputMode(5);
+        this.mPasswordEntry.getWindow().setSoftInputMode(SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         this.mPasswordEntry.setButton(-1, (CharSequence) "Sign", (DialogInterface.OnClickListener) new DialogInterface.OnClickListener() {
             public void onClick(final DialogInterface dialog, final int which) {
                 dialog.dismiss();
@@ -165,7 +168,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
 
     private void invokeTextDialog(final String text) {
         this.mEditText.setText((CharSequence) text);
-        this.mTextEntry.getWindow().setSoftInputMode(5);
+        this.mTextEntry.getWindow().setSoftInputMode(SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         this.mTextEntry.show();
     }
 
@@ -337,7 +340,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
         if (text.length() == 0) {
             return false;
         }
-        final ClipboardManager cm = (ClipboardManager) this.mContext.getSystemService("clipboard");
+        final ClipboardManager cm = (ClipboardManager) this.mContext.getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText((CharSequence) "MuPDF", (CharSequence) text));
         this.deselectText();
         return true;
@@ -362,10 +365,10 @@ public class MuPDFPageView extends PageView implements MuPDFView {
             @Override
             public void onEndLine() {
                 if (!this.rect.isEmpty()) {
-                    quadPoints.add(new PointF(this.rect.left, this.rect.bottom));
-                    quadPoints.add(new PointF(this.rect.right, this.rect.bottom));
-                    quadPoints.add(new PointF(this.rect.right, this.rect.top));
-                    quadPoints.add(new PointF(this.rect.left, this.rect.top));
+                    quadPoints.add(new PointF(this.rect.left, this.rect.bottom - HIGHLIGHT_RECT_OFFSET));
+                    quadPoints.add(new PointF(this.rect.right, this.rect.bottom - HIGHLIGHT_RECT_OFFSET));
+                    quadPoints.add(new PointF(this.rect.right, this.rect.top + HIGHLIGHT_RECT_OFFSET));
+                    quadPoints.add(new PointF(this.rect.left, this.rect.top + HIGHLIGHT_RECT_OFFSET));
                 }
             }
         });
@@ -379,8 +382,8 @@ public class MuPDFPageView extends PageView implements MuPDFView {
             }
 
             protected void onPostExecute(final Void result) {
-                MuPDFPageView.this.loadAnnotations();
                 MuPDFPageView.this.update();
+                MuPDFPageView.this.loadAnnotations();
             }
         }).execute(new PointF[][]{quadPoints.toArray(new PointF[quadPoints.size()])}, getInkColor());
         this.deselectText();
@@ -400,8 +403,8 @@ public class MuPDFPageView extends PageView implements MuPDFView {
                 }
 
                 protected void onPostExecute(final Void result) {
-                    MuPDFPageView.this.loadAnnotations();
                     MuPDFPageView.this.update();
+                    MuPDFPageView.this.loadAnnotations();
                 }
             }).execute(new Integer[]{this.mSelectedAnnotationIndex});
             this.mSelectedAnnotationIndex = -1;
@@ -432,7 +435,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
                 float inkThickness = (float) params[2];
                 MuPDFPageView.this.mCore.addInkAnnotation(MuPDFPageView.this.mPageNumber, arcs, color, inkThickness);
                 if (-1 != mStep) {
-                    mStepList = mStepList.subList(0, mStep );
+                    mStepList = mStepList.subList(0, mStep);
                 }
                 mStep = -1;
                 mStepList.add(new AnnotationStep(mPageNumber, null, arcs, Annotation.Type.INK, color, inkThickness));
@@ -490,7 +493,7 @@ public class MuPDFPageView extends PageView implements MuPDFView {
     protected void addMarkup(final PointF[] quadPoints, final Annotation.Type type, int color) {
         this.mCore.addMarkupAnnotation(this.mPageNumber, quadPoints, type, color);
         if (-1 != mStep) {
-            mStepList = mStepList.subList(0, mStep );
+            mStepList = mStepList.subList(0, mStep);
         }
         mStep = -1;
         mStepList.add(new AnnotationStep(mPageNumber, quadPoints, null, type, color, 0f));
@@ -608,8 +611,8 @@ public class MuPDFPageView extends PageView implements MuPDFView {
                         }
 
                         protected void onPostExecute(final Void result) {
-                            MuPDFPageView.this.loadAnnotations();
                             MuPDFPageView.this.update();
+                            MuPDFPageView.this.loadAnnotations();
                         }
                     }.execute();
                     break;

@@ -36,4 +36,6 @@ public class CommConsts {
             add("#ff5722");
         }
     };
+
+    public static final int HIGHLIGHT_RECT_OFFSET = 5;
 }
