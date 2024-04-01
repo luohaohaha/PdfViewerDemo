@@ -6,7 +6,7 @@ PdfViewerDemo is developed within the [mupdf](https://mupdf.com/downloads/) proj
 # Thanks
 [PdfViewerDemo][2]
 
-[2]:https://github.com/ant-media/LibRtmp-Client-for-Android](https://github.com/LonelyPluto/PdfViewerDemo)
+[2]: https://github.com/LonelyPluto/PdfViewerDemo
 
 # 基于PdfViewerDemo的修改
 * 重新编译mupdf,去除x86，新增arm64 so (2023-09-11)
